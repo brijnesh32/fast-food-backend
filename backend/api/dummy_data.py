@@ -1,0 +1,5 @@
+dummyData = {
+    "categories": [...],
+    "customizations": [...],
+    "menu": [...]
+}

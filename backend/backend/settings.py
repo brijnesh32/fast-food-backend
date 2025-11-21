@@ -11,9 +11,6 @@ SECRET_KEY = os.getenv("DJANGO_SECRET", "dev-secret")
 DEBUG = os.getenv("DEBUG", "1") == "1"
 ALLOWED_HOSTS = os.getenv("ALLOWED_HOSTS", "*").split(",")
 
-# -----------------------------
-# INSTALLED APPS
-# -----------------------------
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -28,9 +25,6 @@ INSTALLED_APPS = [
     "api",
 ]
 
-# -----------------------------
-# MIDDLEWARE
-# -----------------------------
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
@@ -43,27 +37,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = "backend.urls"
 
-# -----------------------------
-# STATIC & MEDIA
-# -----------------------------
-STATIC_URL = "/static/"
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
-
-# -----------------------------
-# MONGODB (MongoEngine)
-# -----------------------------
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/fastfood")
-mongoengine.connect(host=MONGO_URI)
-
-# -----------------------------
-# CORS
-# -----------------------------
-CORS_ALLOW_ALL_ORIGINS = True
-
-# -----------------------------
-# TEMPLATES (Required by admin)
-# -----------------------------
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -80,7 +53,14 @@ TEMPLATES = [
     },
 ]
 
-# -----------------------------
-# WSGI
-# -----------------------------
 WSGI_APPLICATION = "backend.wsgi.application"
+
+STATIC_URL = "/static/"
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
+# MongoDB connection
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/fastfood")
+mongoengine.connect(host=MONGO_URI)
+
+CORS_ALLOW_ALL_ORIGINS = True

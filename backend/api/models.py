@@ -1,49 +1,36 @@
 from mongoengine import (
     Document, StringField, FloatField, DateTimeField,
-    BooleanField, ReferenceField, ListField, IntField, EmbeddedDocument,
+    ReferenceField, ListField, IntField, EmbeddedDocument,
     EmbeddedDocumentField
 )
 import datetime
 
-
-# -----------------------------
-# Category
-# -----------------------------
 class Category(Document):
     name = StringField(required=True, unique=True)
     description = StringField()
 
-
-# -----------------------------
-# FoodItem
-# -----------------------------
 class FoodItem(Document):
     name = StringField(required=True)
     description = StringField()
     price = FloatField(required=True)
     image_url = StringField()
+    rating = FloatField()
+    calories = IntField()
+    protein = IntField()
     category = ReferenceField(Category, required=True)
-    customizations = ListField(StringField())  # simple MVP list of names
+    customizations = ListField(StringField())
     created_at = DateTimeField(default=datetime.datetime.utcnow)
 
-
-# -----------------------------
-# OrderItem (embedded)
-# -----------------------------
 class OrderItem(EmbeddedDocument):
-    food_id = StringField(required=True)  # store FoodItem.id as string
+    food_id = StringField(required=True)
     name = StringField(required=True)
     quantity = IntField(required=True)
-    price = FloatField(required=True)  # snapshot price at purchase
-    customizations = ListField(StringField())  # chosen customizations
+    price = FloatField(required=True)
+    customizations = ListField(StringField())
 
-
-# -----------------------------
-# Order
-# -----------------------------
 class Order(Document):
     user_email = StringField(required=True)
     items = ListField(EmbeddedDocumentField(OrderItem))
     total = FloatField(required=True)
-    status = StringField(default="pending")  # pending / confirmed / delivered
+    status = StringField(default="pending")
     created_at = DateTimeField(default=datetime.datetime.utcnow)

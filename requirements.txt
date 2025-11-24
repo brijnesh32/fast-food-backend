@@ -8,3 +8,4 @@ dnspython
 djangorestframework
 django-cors-headers
 PyJWT==2.8.0
+werkzeug

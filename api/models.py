@@ -1,22 +1,27 @@
-from mongoengine import *
+import datetime  # ADD THIS IMPORT AT THE TOP
+from mongoengine import (
+    Document, StringField, FloatField, DateTimeField,
+    ReferenceField, ListField, IntField, EmbeddedDocument,
+    EmbeddedDocumentField, BooleanField  # ADD BooleanField if needed
+)
 
 class Category(Document):
     name = StringField(required=True, unique=True)
     description = StringField()
-    image = StringField()  # Add this for category images
+    image = StringField()
 
 class FoodItem(Document):
     name = StringField(required=True)
     description = StringField()
     price = FloatField(required=True)
-    image = StringField()  # Change from image_url to image
+    image = StringField()
     rating = FloatField(default=0)
     calories = IntField(default=0)
     protein = IntField(default=0)
     category = ReferenceField(Category, required=True)
-    ingredients = ListField(StringField())  # Add ingredients
-    cooking_time = StringField()  # Add cooking time
-    is_veg = BooleanField(default=False)  # Add veg/non-veg
+    ingredients = ListField(StringField())
+    cooking_time = StringField()
+    is_veg = BooleanField(default=False)
     customizations = ListField(StringField())
     created_at = DateTimeField(default=datetime.datetime.utcnow)
 
@@ -25,16 +30,16 @@ class OrderItem(EmbeddedDocument):
     name = StringField(required=True)
     quantity = IntField(required=True)
     price = FloatField(required=True)
-    image = StringField()  # Add image for order items
+    image = StringField()
     customizations = ListField(StringField())
 
 class Order(Document):
     user_email = StringField(required=True)
-    user_name = StringField()  # Add user name
-    user_phone = StringField()  # Add phone number
+    user_name = StringField()
+    user_phone = StringField()
     items = ListField(EmbeddedDocumentField(OrderItem))
     total = FloatField(required=True)
     status = StringField(default='pending')
-    address = StringField()  # Add delivery address
+    address = StringField()
     payment_method = StringField(default='card')
     created_at = DateTimeField(default=datetime.datetime.utcnow)

@@ -19,7 +19,7 @@ def category_create(request):
     c = Category(
         name=data.get('name'), 
         description=data.get('description',''),
-        image=data.get('image','')  # ADD THIS
+        image=data.get('image','')
     ).save()
     return JsonResponse({'id':str(c.id)})
 
@@ -29,7 +29,7 @@ def category_list(request):
         'id':str(c.id),
         'name':c.name,
         'description':c.description or '',
-        'image': c.image or ''  # ADD THIS
+        'image': c.image or ''
     } for c in Category.objects()]
     return JsonResponse(data, safe=False)
 
@@ -49,14 +49,14 @@ def food_create(request):
         name=cd['name'], 
         description=cd.get('description',''), 
         price=cd['price'], 
-        image=cd.get('image',''),  # CHANGED from image_url
+        image=cd.get('image',''),
         rating=cd.get('rating', 0),
         calories=cd.get('calories', 0),
         protein=cd.get('protein', 0),
         category=cat,
-        ingredients=cd.get('ingredients', []),  # ADD THIS
-        cooking_time=cd.get('cooking_time', ''),  # ADD THIS
-        is_veg=cd.get('is_veg', False),  # ADD THIS
+        ingredients=cd.get('ingredients', []),
+        cooking_time=cd.get('cooking_time', ''),
+        is_veg=cd.get('is_veg', False),
         customizations=cd.get('customizations',[])
     ).save()
     return JsonResponse({'id':str(item.id)})
@@ -71,7 +71,7 @@ def food_list(request):
             'name':f.name,
             'description':f.description,
             'price':f.price,
-            'image': f.image or '',  # CHANGED from image_url
+            'image': f.image or '',
             'rating':f.rating,
             'calories':f.calories,
             'protein':f.protein,
@@ -79,9 +79,9 @@ def food_list(request):
                 'id':str(f.category.id),
                 'name':f.category.name
             } if f.category else None,
-            'ingredients': f.ingredients or [],  # ADD THIS
-            'cooking_time': f.cooking_time or '',  # ADD THIS
-            'is_veg': f.is_veg or False,  # ADD THIS
+            'ingredients': f.ingredients or [],
+            'cooking_time': f.cooking_time or '',
+            'is_veg': f.is_veg or False,
             'customizations':f.customizations
         })
     return JsonResponse(out, safe=False)
@@ -100,17 +100,17 @@ def order_create(request):
             name=it['name'], 
             quantity=it['quantity'], 
             price=it['price'], 
-            image=it.get('image', ''),  # ADD THIS
+            image=it.get('image', ''),
             customizations=it.get('customizations',[])
         ))
     order = Order(
         user_email=cd['user_email'],
-        user_name=cd.get('user_name', ''),  # ADD THIS
-        user_phone=cd.get('user_phone', ''),  # ADD THIS
+        user_name=cd.get('user_name', ''),
+        user_phone=cd.get('user_phone', ''),
         items=order_items, 
         total=cd['total'],
-        address=cd.get('address', ''),  # ADD THIS
-        payment_method=cd.get('payment_method', 'card')  # ADD THIS
+        address=cd.get('address', ''),
+        payment_method=cd.get('payment_method', 'card')
     ).save()
     return JsonResponse({'id':str(order.id)})
 
@@ -122,24 +122,23 @@ def order_list(request):
         out.append({
             'id':str(o.id),
             'user_email':o.user_email,
-            'user_name': o.user_name or '',  # ADD THIS
-            'user_phone': o.user_phone or '',  # ADD THIS
+            'user_name': o.user_name or '',
+            'user_phone': o.user_phone or '',
             'total':o.total,
             'status':o.status,
-            'address': o.address or '',  # ADD THIS
-            'payment_method': o.payment_method or 'card',  # ADD THIS
+            'address': o.address or '',
+            'payment_method': o.payment_method or 'card',
             'items':[{
                 'food_id':it.food_id,
                 'name':it.name,
                 'quantity':it.quantity,
                 'price':it.price,
-                'image': it.image or '',  # ADD THIS
+                'image': it.image or '',
                 'customizations':it.customizations
             } for it in o.items]
         })
     return JsonResponse(out, safe=False)
 
-# ADD THESE NEW ENDPOINTS
 @api_view(['GET'])
 def featured_foods(request):
     """Get featured foods for home screen"""
@@ -175,3 +174,26 @@ def search_foods(request):
             'rating': f.rating or 0
         })
     return JsonResponse(out, safe=False)
+
+@api_view(['POST'])
+@parser_classes([MultiPartParser])
+def upload(request):
+    f = request.FILES.get('file')
+    if not f:
+        return JsonResponse({'detail':'File missing'}, status=400)
+    
+    upload_dir = os.path.join(settings.MEDIA_ROOT, 'uploads')
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    # Create a unique filename to avoid conflicts
+    import uuid
+    file_extension = os.path.splitext(f.name)[1]
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    path = os.path.join(upload_dir, unique_filename)
+    
+    with open(path, 'wb+') as dest:
+        for chunk in f.chunks():
+            dest.write(chunk)
+    
+    url = request.build_absolute_uri(settings.MEDIA_URL + 'uploads/' + unique_filename)
+    return JsonResponse({'url': url})

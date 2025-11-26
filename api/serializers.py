@@ -11,7 +11,7 @@ class FoodSerializer(serializers.Serializer):
     name = serializers.CharField()
     description = serializers.CharField(required=False)
     price = serializers.FloatField()
-    image = serializers.CharField(required=False)  # CHANGED from image_url
+    image = serializers.CharField(required=False)
     rating = serializers.FloatField(required=False)
     calories = serializers.IntegerField(required=False)
     protein = serializers.IntegerField(required=False)

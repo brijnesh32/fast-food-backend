@@ -12,4 +12,5 @@ urlpatterns = [
     path('orders/', views.order_list),
     path('orders/create/', views.order_create),
     path('upload/', views.upload),
+    path('seed-database/', views.seed_database),
 ]

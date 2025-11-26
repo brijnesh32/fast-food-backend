@@ -197,3 +197,47 @@ def upload(request):
     
     url = request.build_absolute_uri(settings.MEDIA_URL + 'uploads/' + unique_filename)
     return JsonResponse({'url': url})
+
+@api_view(['POST'])
+def seed_database(request):
+    """Seed database with dummy data"""
+    try:
+        from api.dummy_data import dummyData
+        from api.models import Category, FoodItem
+        
+        # Clear existing data
+        Category.objects.delete()
+        FoodItem.objects.delete()
+        
+        # Create Categories
+        categories_map = {}
+        for cat_data in dummyData['categories']:
+            category = Category(
+                name=cat_data['name'],
+                description=cat_data['description'],
+                image=""
+            )
+            category.save()
+            categories_map[cat_data['name']] = category
+        
+        # Create Food Items
+        for food_data in dummyData['menu']:
+            food_item = FoodItem(
+                name=food_data['name'],
+                description=food_data['description'],
+                image=food_data['image_url'],
+                price=food_data['price'],
+                rating=food_data['rating'],
+                calories=food_data['calories'],
+                protein=food_data['protein'],
+                category=categories_map[food_data['category_name']],
+                ingredients=[],
+                cooking_time="15-20 mins",
+                is_veg=False,
+                customizations=food_data['customizations']
+            )
+            food_item.save()
+        
+        return JsonResponse({'status': 'success', 'message': 'Database seeded with sample data'})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

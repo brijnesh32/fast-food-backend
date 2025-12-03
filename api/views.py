@@ -5,7 +5,13 @@ from rest_framework.decorators import api_view, parser_classes
 from rest_framework.parsers import MultiPartParser
 from api.models import Category, FoodItem, Order, OrderItem
 from api.serializers import FoodSerializer, OrderSerializer
-from api.utils import auth_required
+from api.utils import auth_required 
+import hashlib
+import secrets
+from .models import User, UserSession
+import datetime
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_POST
 
 @api_view(['GET'])
 def health_check(request):
@@ -241,3 +247,152 @@ def seed_database(request):
         return JsonResponse({'status': 'success', 'message': 'Database seeded with sample data'})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+@csrf_exempt    
+@require_POST
+def login_view(request):
+    try:
+        data = json.loads(request.body)
+        email = data.get('email', '').strip()
+        password = data.get('password', '').strip()
+        
+        # Find user
+        user = User.objects(email=email).first()
+        if not user:
+            return JsonResponse({
+                'ok': False,
+                'message': 'Invalid email or password'
+            }, status=401)
+        
+        # Check password (simple hash for now)
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+        if user.password_hash != password_hash:
+            return JsonResponse({
+                'ok': False,
+                'message': 'Invalid email or password'
+            }, status=401)
+        
+        # Create session
+        token = secrets.token_hex(32)
+        session = UserSession(
+            user_id=str(user.id),
+            token=token,
+            expires_at=datetime.datetime.utcnow() + datetime.timedelta(days=7)
+        )
+        session.save()
+        
+        return JsonResponse({
+            'ok': True,
+            'token': token,
+            'user': {
+                'id': str(user.id),
+                'email': user.email,
+                'name': user.name
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'ok': False,
+            'message': str(e)
+        }, status=500)
+
+@csrf_exempt
+@require_POST
+def register_view(request):
+    try:
+        data = json.loads(request.body)
+        email = data.get('email', '').strip()
+        name = data.get('name', '').strip()
+        password = data.get('password', '').strip()
+        
+        # Check if user exists
+        if User.objects(email=email).first():
+            return JsonResponse({
+                'ok': False,
+                'message': 'User already exists'
+            }, status=400)
+        
+        # Create user
+        user = User(
+            email=email,
+            name=name
+        )
+        user.password_hash = hashlib.sha256(password.encode()).hexdigest()
+        user.save()
+        
+        # Auto login after registration
+        token = secrets.token_hex(32)
+        session = UserSession(
+            user_id=str(user.id),
+            token=token,
+            expires_at=datetime.datetime.utcnow() + datetime.timedelta(days=7)
+        )
+        session.save()
+        
+        return JsonResponse({
+            'ok': True,
+            'token': token,
+            'user': {
+                'id': str(user.id),
+                'email': user.email,
+                'name': user.name
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'ok': False,
+            'message': str(e)
+        }, status=500)
+
+@csrf_exempt
+@require_POST
+def logout_view(request):
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        if token:
+            session = UserSession.objects(token=token).first()
+            if session:
+                session.is_active = False
+                session.save()
+        
+        return JsonResponse({'ok': True, 'message': 'Logged out successfully'})
+        
+    except Exception as e:
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)
+
+@csrf_exempt
+def get_profile(request):
+    try:
+        token = request.headers.get('Authorization', '').replace('Bearer ', '')
+        if not token:
+            return JsonResponse({'ok': False, 'message': 'No token provided'}, status=401)
+        
+        # Find active session
+        session = UserSession.objects(token=token, is_active=True).first()
+        if not session:
+            return JsonResponse({'ok': False, 'message': 'Invalid token'}, status=401)
+        
+        # Check if expired
+        if session.expires_at < datetime.datetime.utcnow():
+            session.is_active = False
+            session.save()
+            return JsonResponse({'ok': False, 'message': 'Session expired'}, status=401)
+        
+        # Get user
+        user = User.objects(id=session.user_id).first()
+        if not user:
+            return JsonResponse({'ok': False, 'message': 'User not found'}, status=404)
+        
+        return JsonResponse({
+            'ok': True,
+            'user': {
+                'id': str(user.id),
+                'email': user.email,
+                'name': user.name
+            }
+        })
+        
+    except Exception as e:
+        return JsonResponse({'ok': False, 'message': str(e)}, status=500)

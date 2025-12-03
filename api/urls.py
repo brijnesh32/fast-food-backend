@@ -13,4 +13,9 @@ urlpatterns = [
     path('orders/create/', views.order_create),
     path('upload/', views.upload),
     path('seed-database/', views.seed_database),
+    # Authentication
+    path('auth/login/', views.login_view, name='login'),
+    path('auth/register/', views.register_view, name='register'),
+    path('auth/logout/', views.logout_view, name='logout'),
+    path('auth/profile/', views.get_profile, name='profile'),
 ]

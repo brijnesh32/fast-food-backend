@@ -43,3 +43,29 @@ class Order(Document):
     address = StringField()
     payment_method = StringField(default='card')
     created_at = DateTimeField(default=datetime.datetime.utcnow)
+
+
+
+class User(Document):
+    email = StringField(required=True, unique=True)
+    password_hash = StringField(required=True)
+    name = StringField(required=True)
+    created_at = DateTimeField(default=datetime.datetime.utcnow)
+    is_active = BooleanField(default=True)
+
+    meta = {
+        'collection': 'users',
+        'indexes': ['email']
+    }
+
+class UserSession(Document):
+    user_id = StringField(required=True)
+    token = StringField(required=True, unique=True)
+    created_at = DateTimeField(default=datetime.datetime.utcnow)
+    expires_at = DateTimeField(required=True)
+    is_active = BooleanField(default=True)
+
+    meta = {
+        'collection': 'user_sessions',
+        'indexes': ['token', 'user_id']
+    }

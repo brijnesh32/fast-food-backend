@@ -74,6 +74,58 @@ def get_order_details(request, order_id):
         return JsonResponse({'error': 'Order not found'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+    
+@api_view(['PATCH', 'PUT'])
+def update_order_status(request, order_id):
+    """Update order status (called by admin)"""
+    try:
+        from bson import ObjectId
+        order = Order.objects.get(id=ObjectId(order_id))
+        
+        data = json.loads(request.body)
+        new_status = data.get('status')
+        note = data.get('note', '')
+        
+        if not new_status:
+            return JsonResponse({'error': 'Status is required'}, status=400)
+        
+        # Valid status values
+        valid_statuses = ['pending', 'confirmed', 'preparing', 'ready', 
+                         'on-the-way', 'delivered', 'cancelled', 'completed']
+        
+        if new_status not in valid_statuses:
+            return JsonResponse({'error': 'Invalid status'}, status=400)
+        
+        # Update status history
+        if not hasattr(order, 'status_history') or not order.status_history:
+            order.status_history = []
+        
+        order.status_history.append({
+            'status': new_status,
+            'timestamp': datetime.datetime.utcnow().isoformat(),
+            'note': note,
+            'updated_by': 'admin'
+        })
+        
+        # Update order status
+        order.status = new_status
+        order.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Order status updated to {new_status}',
+            'order': {
+                'id': str(order.id),
+                'status': order.status,
+                'status_history': order.status_history
+            }
+        })
+        
+    except Order.DoesNotExist:
+        return JsonResponse({'error': 'Order not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 @api_view(['POST'])
 @auth_required

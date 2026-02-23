@@ -9,10 +9,16 @@ urlpatterns = [
     path('foods/create/', views.food_create),
     path('foods/featured/', views.featured_foods),
     path('foods/search/', views.search_foods),
-    path('orders/', views.order_list),
-    path('orders/create/', views.order_create),
+    
+    # ✅ ORDER ENDPOINTS - COMPLETE SET
+    path('orders/', views.order_list),                    # GET all orders
+    path('orders/create/', views.order_create),           # POST new order
+    path('orders/<str:order_id>/', views.get_order_details),     # ✅ ADD THIS - GET single order
+    path('orders/<str:order_id>/status/', views.update_order_status),  # ✅ ADD THIS - PATCH update status
+    
     path('upload/', views.upload),
     path('seed-database/', views.seed_database),
+    
     # Authentication
     path('auth/login/', views.login_view, name='login'),
     path('auth/register/', views.register_view, name='register'),

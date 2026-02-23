@@ -38,6 +38,42 @@ def category_list(request):
         'image': c.image or ''
     } for c in Category.objects()]
     return JsonResponse(data, safe=False)
+@api_view(['GET'])
+def get_order_details(request, order_id):
+    """Get single order details by ID"""
+    try:
+        from bson import ObjectId
+        order = Order.objects.get(id=ObjectId(order_id))
+        
+        # Format order data
+        order_data = {
+            'id': str(order.id),
+            'order_number': str(order.id),
+            'status': order.status,
+            'created_at': order.created_at.isoformat() if order.created_at else None,
+            'total_amount': order.total,
+            'items': [
+                {
+                    'id': item.food_id,
+                    'name': item.name,
+                    'quantity': item.quantity,
+                    'price': item.price,
+                    'customizations': item.customizations
+                } for item in order.items
+            ],
+            'delivery_option': getattr(order, 'delivery_option', 'delivery'),
+            'delivery_address': order.address or '',
+            'payment_method': order.payment_method or 'cod',
+            'user_email': order.user_email,
+            'user_name': order.user_name,
+            'user_phone': order.user_phone,
+        }
+        
+        return JsonResponse(order_data)
+    except Order.DoesNotExist:
+        return JsonResponse({'error': 'Order not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 @api_view(['POST'])
 @auth_required

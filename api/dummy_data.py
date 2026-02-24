@@ -1,4 +1,7 @@
-{
+# api/dummy_data.py
+# Sample data for seeding the database
+
+dummyData = {
     "categories": [
         {"name": "Burgers", "description": "Juicy grilled burgers"},
         {"name": "Pizzas", "description": "Oven-baked cheesy pizzas"},

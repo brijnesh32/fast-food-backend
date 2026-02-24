@@ -35,5 +35,5 @@ class OrderSerializer(serializers.Serializer):
     user_phone = serializers.CharField(required=False)
     items = OrderItemSerializer(many=True)
     total = serializers.FloatField()
-    address = serializers.CharField(required=False)
+    address = serializers.CharField(required=False, allow_blank=True)
     payment_method = serializers.CharField(required=False)

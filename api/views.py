@@ -197,16 +197,18 @@ def order_create(request):
             image=it.get('image', ''),
             customizations=it.get('customizations',[])
         ))
+    
+    # ✅ FIX: Allow empty address for dine-in
     order = Order(
         user_email=cd['user_email'],
         user_name=cd.get('user_name', ''),
         user_phone=cd.get('user_phone', ''),
         items=order_items, 
         total=cd['total'],
-        address=cd.get('address', ''),
+        address=cd.get('address', ''),  # Now accepts empty string
         payment_method=cd.get('payment_method', 'card')
     ).save()
-    return JsonResponse({'id':str(order.id)})
+    return JsonResponse({'id': str(order.id)})
 
 @api_view(['GET'])
 def order_list(request):

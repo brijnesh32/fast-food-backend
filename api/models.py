@@ -43,6 +43,10 @@ class Order(Document):
     address = StringField()
     payment_method = StringField(default='card')
     created_at = DateTimeField(default=datetime.datetime.utcnow)
+    delivery_option = StringField(default='delivery')  # 'delivery' or 'dine-in'
+    restaurant_name = StringField(default='')
+    restaurant_address = StringField(default='')
+    pincode = StringField(default='')
 
 
 

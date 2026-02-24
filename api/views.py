@@ -38,6 +38,7 @@ def category_list(request):
         'image': c.image or ''
     } for c in Category.objects()]
     return JsonResponse(data, safe=False)
+
 @api_view(['GET'])
 def get_order_details(request, order_id):
     """Get single order details by ID"""
@@ -61,12 +62,17 @@ def get_order_details(request, order_id):
                     'customizations': item.customizations
                 } for item in order.items
             ],
+            # ✅ FIX: Add delivery_option field
             'delivery_option': getattr(order, 'delivery_option', 'delivery'),
             'delivery_address': order.address or '',
             'payment_method': order.payment_method or 'cod',
             'user_email': order.user_email,
             'user_name': order.user_name,
             'user_phone': order.user_phone,
+            # ✅ Add these for dine-in support
+            'restaurant_name': getattr(order, 'restaurant_name', ''),
+            'restaurant_address': getattr(order, 'restaurant_address', ''),
+            'pincode': getattr(order, 'pincode', ''),
         }
         
         return JsonResponse(order_data)

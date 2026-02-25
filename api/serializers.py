@@ -31,9 +31,14 @@ class OrderItemSerializer(serializers.Serializer):
 
 class OrderSerializer(serializers.Serializer):
     user_email = serializers.EmailField()
-    user_name = serializers.CharField(required=False)
-    user_phone = serializers.CharField(required=False)
+    user_name = serializers.CharField(required=False, allow_blank=True)
+    user_phone = serializers.CharField(required=False, allow_blank=True)
     items = OrderItemSerializer(many=True)
     total = serializers.FloatField()
     address = serializers.CharField(required=False, allow_blank=True)
-    payment_method = serializers.CharField(required=False)
+    payment_method = serializers.CharField(required=False, allow_blank=True)
+    # ✅ NEW FIELDS FOR DINE-IN SUPPORT
+    delivery_option = serializers.CharField(required=False, default='delivery')
+    restaurant_name = serializers.CharField(required=False, allow_blank=True)
+    restaurant_address = serializers.CharField(required=False, allow_blank=True)
+    pincode = serializers.CharField(required=False, allow_blank=True)

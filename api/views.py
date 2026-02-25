@@ -196,26 +196,30 @@ def order_create(request):
     order_items = []
     for it in items_payload:
         order_items.append(OrderItem(
-            food_id=it['food_id'], 
-            name=it['name'], 
-            quantity=it['quantity'], 
-            price=it['price'], 
+            food_id=it['food_id'],
+            name=it['name'],
+            quantity=it['quantity'],
+            price=it['price'],
             image=it.get('image', ''),
-            customizations=it.get('customizations',[])
+            customizations=it.get('customizations', [])
         ))
-    
-    # ✅ FIX: Allow empty address for dine-in
+
+    # ✅ FIX: Include all fields from the model
     order = Order(
         user_email=cd['user_email'],
         user_name=cd.get('user_name', ''),
         user_phone=cd.get('user_phone', ''),
-        items=order_items, 
+        items=order_items,
         total=cd['total'],
-        address=cd.get('address', ''),  # Now accepts empty string
-        payment_method=cd.get('payment_method', 'card')
+        address=cd.get('address', ''),
+        payment_method=cd.get('payment_method', 'card'),
+        # ✅ NEW FIELDS FOR DINE-IN SUPPORT
+        delivery_option=cd.get('delivery_option', 'delivery'),
+        restaurant_name=cd.get('restaurant_name', ''),
+        restaurant_address=cd.get('restaurant_address', ''),
+        pincode=cd.get('pincode', ''),
     ).save()
     return JsonResponse({'id': str(order.id)})
-
 @api_view(['GET'])
 def order_list(request):
     orders = Order.objects().order_by('-created_at')
